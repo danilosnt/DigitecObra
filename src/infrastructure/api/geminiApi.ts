@@ -11,11 +11,11 @@ export interface SmartCostExtraction {
 }
 
 export const extractCostFromText = async (text: string): Promise<Partial<SmartCostExtraction>> => {
-  // In production (Vercel), call the serverless function at /api/extract
-  // In local dev, fall back to direct client-side call if VITE_GEMINI_API_KEY is set
-  const useServerless = !import.meta.env.VITE_GEMINI_API_KEY;
+  // In production (Vercel), ALWAYS use the serverless function
+  // In local dev, use client-side call if VITE_GEMINI_API_KEY is available
+  const useClientSide = import.meta.env.DEV && !! import.meta.env.VITE_GEMINI_API_KEY;
 
-  if (useServerless) {
+  if (!useClientSide) {
     // --- Production path: call Vercel serverless function ---
     try {
       const response = await fetch('/api/extract', {

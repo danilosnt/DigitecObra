@@ -1,73 +1,71 @@
-# React + TypeScript + Vite
+# DigitecObra Manager
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Aplicação web (SPA) para gestão de custos em projetos de construção civil. Permite cadastrar obras, lançar e acompanhar custos com dashboard financeiro em tempo real, e conta com um assistente de lançamento inteligente via IA generativa.
 
-Currently, two official plugins are available:
+## Funcionalidades
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- **Gestão de Obras** — Criar, listar e remover projetos/obras.
+- **Gestão de Custos** — Dentro de cada obra: inserir, editar, visualizar e remover itens de custo.
+- **Dashboard Financeiro** — Custo total, total pago e total pendente calculados dinamicamente.
+- **Filtros** — Filtrar custos por categoria e status de pagamento.
+- **Lançamento Inteligente (IA)** — Campo de texto livre onde a IA extrai automaticamente os dados do custo e preenche o formulário.
+- **Persistência Local** — Dados salvos no LocalStorage do navegador.
 
-## React Compiler
+## Stack Tecnológica
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+| [React 18](https://react.dev) | Biblioteca de UI |
+| [TypeScript](https://www.typescriptlang.org) | Tipagem estática |
+| [Vite](https://vite.dev) | Bundler e dev server |
+| [Tailwind CSS 4](https://tailwindcss.com) | Estilização utilitária |
+| [React Router DOM](https://reactrouter.com) | Navegação SPA |
+| [Lucide React](https://lucide.dev) | Ícones |
+| [React Hot Toast](https://react-hot-toast.com) | Notificações toast |
+| [UUID](https://github.com/uuidjs/uuid) | Geração de IDs únicos |
 
-## Expanding the ESLint configuration
+## API Utilizada
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+| API | Modelo | Finalidade |
+|---|---|---|
+| [Google Generative AI](https://ai.google.dev) | `gemini-2.5-flash` | Extração inteligente de dados de custo a partir de texto livre |
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+A integração roda via Vercel Serverless Function (`/api/extract`) em produção, mantendo a chave da API protegida no servidor.
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+## Como Rodar Localmente
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+# 1. Instalar dependências
+npm install
+
+# 2. Criar o arquivo .env na raiz com sua chave
+VITE_GEMINI_API_KEY=sua_chave_aqui
+
+# 3. Iniciar o servidor de desenvolvimento
+npm run dev
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## Deploy (Vercel)
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+1. Conecte o repositório na [Vercel](https://vercel.com).
+2. Em **Environment Variables**, adicione:
+   - `GEMINI_API_KEY` = sua chave da API do Google AI.
+3. Clique em **Deploy**.
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+## Estrutura do Projeto
+
+```
+src/
+├── domain/models/         # Interfaces e tipos (Project, CostItem)
+├── infrastructure/
+│   ├── api/               # Integração com Gemini API
+│   ├── logger/            # Logger estruturado (JSON)
+│   └── storage/           # Repository para LocalStorage
+├── application/hooks/     # Hooks de negócio (useProjects, useCosts)
+├── presentation/
+│   ├── components/        # Componentes UI reutilizáveis
+│   ├── features/          # Componentes complexos (Dashboard, CostForm)
+│   ├── layouts/           # Layout principal
+│   └── pages/             # Páginas da aplicação
+└── utils/                 # Utilitários (formatação de moeda)
+api/
+└── extract.ts             # Vercel Serverless Function (proxy Gemini)
 ```
