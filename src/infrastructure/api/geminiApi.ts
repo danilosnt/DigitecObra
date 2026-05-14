@@ -47,7 +47,6 @@ export const extractCostFromText = async (text: string): Promise<Partial<SmartCo
     const result = await model.generateContent(prompt);
     const responseText = result.response.text();
     
-    // Clean potential markdown from response
     const jsonStr = responseText.replace(/```json/g, '').replace(/```/g, '').trim();
     
     const parsedData = JSON.parse(jsonStr);

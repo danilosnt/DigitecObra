@@ -7,10 +7,10 @@ export interface CostItem {
   projectId: string;
   name: string;
   category: CostCategory;
-  value: number; // Stored in cents (or standard number, I will use standard number but handle carefully)
+  value: number;
   paymentMethod: PaymentMethod;
   paymentStatus: PaymentStatus;
-  date: string; // ISO date string
+  date: string;
   observations: string;
 }
 

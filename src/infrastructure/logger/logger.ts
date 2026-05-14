@@ -1,4 +1,3 @@
-// Structured JSON logger to replace common console.log
 export const Logger = {
   info: (message: string, data?: any) => {
     console.info(JSON.stringify({ level: 'INFO', timestamp: new Date().toISOString(), message, data }));
