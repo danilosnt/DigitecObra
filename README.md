@@ -43,13 +43,6 @@ VITE_GEMINI_API_KEY=sua_chave_aqui
 npm run dev
 ```
 
-## Deploy (Vercel)
-
-1. Conecte o repositório na [Vercel](https://vercel.com).
-2. Em **Environment Variables**, adicione:
-   - `GEMINI_API_KEY` = sua chave da API do Google AI.
-3. Clique em **Deploy**.
-
 ## Estrutura do Projeto
 
 ```
