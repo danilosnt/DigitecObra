@@ -37,6 +37,21 @@ export const useCosts = (projectId: string) => {
     toast.success('Custo removido com sucesso!');
   };
 
+  const updateCost = (id: string, costData: Omit<CostItem, 'id' | 'projectId'>) => {
+    const updatedCost: CostItem = {
+      ...costData,
+      id,
+      projectId,
+    };
+    costRepo.update(id, updatedCost);
+    loadCosts();
+    toast.success('Custo atualizado com sucesso!');
+  };
+
+  const getCostById = (costId: string): CostItem | undefined => {
+    return costs.find(c => c.id === costId);
+  };
+
   const filteredCosts = useMemo(() => {
     return costs.filter(cost => {
       const matchCategory = filterCategory ? cost.category === filterCategory : true;
@@ -73,6 +88,8 @@ export const useCosts = (projectId: string) => {
     allCosts: costs,
     addCost,
     removeCost,
+    updateCost,
+    getCostById,
     filterCategory,
     setFilterCategory,
     filterStatus,

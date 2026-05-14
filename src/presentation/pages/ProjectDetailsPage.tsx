@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useParams, Link, useSearchParams } from 'react-router-dom';
 import { useProjects } from '../../application/hooks/useProjects';
 import { useCosts } from '../../application/hooks/useCosts';
 import { Dashboard } from '../features/Dashboard';
@@ -8,10 +8,12 @@ import { Button } from '../components/Button';
 import { Card } from '../components/Card';
 import { Select } from '../components/Select';
 import { formatCurrency } from '../../utils/formatCurrency';
-import { Plus, ArrowLeft, Trash2, ReceiptText, Filter } from 'lucide-react';
+import type { CostItem } from '../../domain/models/types';
+import { Plus, ArrowLeft, Trash2, ReceiptText, Filter, Pencil, Eye } from 'lucide-react';
 
 export const ProjectDetailsPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { projects } = useProjects();
   const project = projects.find(p => p.id === id);
 
@@ -19,6 +21,8 @@ export const ProjectDetailsPage: React.FC = () => {
     costs,
     addCost,
     removeCost,
+    updateCost,
+    getCostById,
     filterCategory,
     setFilterCategory,
     filterStatus,
@@ -27,6 +31,36 @@ export const ProjectDetailsPage: React.FC = () => {
   } = useCosts(id || '');
 
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const [editingCost, setEditingCost] = useState<CostItem | null>(null);
+
+  // Handle ?edit=<costId> query param (coming from detail page)
+  useEffect(() => {
+    const editId = searchParams.get('edit');
+    if (editId) {
+      const cost = getCostById(editId);
+      if (cost) {
+        setEditingCost(cost);
+        setIsFormOpen(true);
+      }
+      // Clean the query param
+      setSearchParams({}, { replace: true });
+    }
+  }, [searchParams, costs]);
+
+  const handleOpenNewForm = () => {
+    setEditingCost(null);
+    setIsFormOpen(true);
+  };
+
+  const handleEditCost = (cost: CostItem) => {
+    setEditingCost(cost);
+    setIsFormOpen(true);
+  };
+
+  const handleCloseForm = () => {
+    setEditingCost(null);
+    setIsFormOpen(false);
+  };
 
   if (!project) {
     return (
@@ -90,18 +124,23 @@ export const ProjectDetailsPage: React.FC = () => {
             ]}
           />
         </div>
-        <Button icon={<Plus size={18} />} onClick={() => setIsFormOpen(!isFormOpen)}>
-          {isFormOpen ? 'Fechar Formulário' : 'Novo Custo'}
+        <Button icon={<Plus size={18} />} onClick={isFormOpen && !editingCost ? handleCloseForm : handleOpenNewForm}>
+          {isFormOpen && !editingCost ? 'Fechar Formulário' : 'Novo Custo'}
         </Button>
       </div>
 
       {isFormOpen && (
         <CostForm 
-          onSave={(cost) => {
-            addCost(cost);
-            setIsFormOpen(false);
+          initialData={editingCost}
+          onSave={(costData) => {
+            if (editingCost) {
+              updateCost(editingCost.id, costData);
+            } else {
+              addCost(costData);
+            }
+            handleCloseForm();
           }} 
-          onCancel={() => setIsFormOpen(false)} 
+          onCancel={handleCloseForm} 
         />
       )}
 
@@ -123,7 +162,7 @@ export const ProjectDetailsPage: React.FC = () => {
                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Categoria / Pgto</th>
                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Status</th>
                   <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">Valor</th>
-                  <th scope="col" className="relative px-6 py-3"><span className="sr-only">Ações</span></th>
+                  <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">Ações</th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-slate-200">
@@ -148,18 +187,34 @@ export const ProjectDetailsPage: React.FC = () => {
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-bold text-slate-900">
                       {formatCurrency(cost.value)}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                      <button
-                        onClick={() => {
-                          if (window.confirm('Deseja realmente remover este custo?')) {
-                            removeCost(cost.id);
-                          }
-                        }}
-                        className="text-slate-400 hover:text-red-600 transition-colors"
-                        title="Remover Custo"
-                      >
-                        <Trash2 size={18} />
-                      </button>
+                    <td className="px-6 py-4 whitespace-nowrap text-right">
+                      <div className="flex items-center justify-end gap-2">
+                        <Link
+                          to={`/project/${id}/cost/${cost.id}`}
+                          className="p-1.5 text-slate-400 hover:text-primary-600 hover:bg-primary-50 rounded-md transition-colors"
+                          title="Ver detalhes completos"
+                        >
+                          <Eye size={17} />
+                        </Link>
+                        <button
+                          onClick={() => handleEditCost(cost)}
+                          className="p-1.5 text-slate-400 hover:text-amber-600 hover:bg-amber-50 rounded-md transition-colors"
+                          title="Editar custo"
+                        >
+                          <Pencil size={17} />
+                        </button>
+                        <button
+                          onClick={() => {
+                            if (window.confirm('Deseja realmente remover este custo?')) {
+                              removeCost(cost.id);
+                            }
+                          }}
+                          className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors"
+                          title="Remover custo"
+                        >
+                          <Trash2 size={17} />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
